@@ -1,5 +1,6 @@
 # D4LCN: Learning Depth-Guided Convolutions for Monocular 3D Object Detection（CVPR2020)
 The paddlepaddle version of D4LCN(CVPR2020) https://github.com/dingmyu/D4LCN
+BAIDU AISTUDIO 项目链接 https://aistudio.baidu.com/aistudio/projectdetail/1420778
 
 # 1. 论文简介
 ## 论文地址
@@ -73,3 +74,87 @@ pytorch参数转化为paddle
 [paddle复现pytorch踩坑(五）：dygraph的一些用法示例](https://editor.csdn.net/md/?articleId=112384842)
 
 [paddle复现pytorch踩坑(六）：多维度index下gather的用法](https://editor.csdn.net/md/?articleId=112384654)
+
+# 4.运行步骤
+## (1) 环境安装
+```
+paddlepaddle == 1.8.4
+opnecv-python
+easydict
+```
+## (2)数据集准备
+[KITTI 3D 目标检测数据](http://www.cvlibs.net/datasets/kitti/eval_object.php?obj_benchmark=3d)
+
+## (3)模型训练
+```
+python scripts/train.py
+```
+
+## （4）模型预测
+模型结果输出为txt标签文件
+```
+unzip data/data68262/D4LCNpretrain.zip -d pretrain/
+# 可视化输出预测文件
+!python scripts/infer.py
+```
+
+## （5）模型评估
+编译KITTI数据集评估工具
+* 编译
+```
+cd scripts/eval/ && g++ -O3 -DNDEBUG -o evaluate_object evaluate_object.cpp && cd ../..
+```
+* 评估
+```
+# 评估
+python scripts/test.py
+
+# 或者直接调用evaluate_object 可执行文件
+./scripts/eval/evaluate_object ./data/training/label_2/ ./pretrain/
+```
+
+## （6）3D框可视化
+3D框可视化可借助代码
+[kitti_object_vis](https://github.com/kuixu/kitti_object_vis)。
+通过设置文件路径即可
+Windows10、Linux下亲测有效
+
+### 原始图像KITTI
+![](https://ai-studio-static-online.cdn.bcebos.com/4831a9c9cd424338939b509a77bbcc50fd43103039fc48e397422d993717aae9)
+
+### Ground Truth
+![](https://ai-studio-static-online.cdn.bcebos.com/52ac796fa2f445a2b32d07459e4415ec7ffd8076ca09435c868429fa06a0fadc)
+
+### 测试结果
+![](https://ai-studio-static-online.cdn.bcebos.com/6cc5ae20f9c74db2a38e8fd0db8ce584eb2368ae89a94aeba5b6c45ec90b8ecf)
+
+## VisualDL 可视化训练结果
+![](https://ai-studio-static-online.cdn.bcebos.com/ce86b339a8cd407788195d1cf3906d532b6d1a31c536425f96f1b2763174b149)
+
+# 5.总结与展望
+这篇项目是利用深度图进行3D目标检测的工作，目前3D目标检测的工作主要借助雷达等传感器上，借助点云方法部署在自动驾驶等领域。而对于消费级的深度传感器，则缺乏有效的推理方案，希望这个复现工作可以帮助开发者在paddle框架基础上开展3D目标检测相关的工作。
+
+# 附录：文件说明
+* **scripts**
+  
+  * train.py 训练脚本
+  * reader.py 数据集读取脚本
+  * infer.py 预测脚本
+  * test.py 评估脚本：会在train.py文件中调用
+  * config --> depth_guided_config.py 权重配置文件
+  * eval 文件夹：kitti官网给的评估cpp文件，需编译为可执行文件
+* **models**
+  
+  * resnet.py backbone脚本
+  * deform_conv_v2.py 膨胀卷积引导的backbone脚本
+  * resnet_dilate.py 网络主体RPN脚本
+
+* **lib**
+  * cpu_nms.py 目标检测NMS后处理算法脚本
+  * lr.py 学习率调整脚本
+  * core.py 核心函数脚本
+  * util.py 核心工具脚本
+  * augmentations.py 数据预处理类脚本
+  * rpn_util.py RPN文件辅助脚本
+  * loss --> rpn_3d.py 损失函数脚本
+
